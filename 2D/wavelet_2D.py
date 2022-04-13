@@ -86,7 +86,7 @@ def Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt):
     ------
     """
     
-    fig=plt.figure(figsize=(36,36))
+    fig=plt.figure(figsize=(31,36))
     sns.set()
     sns.set_style('ticks')
     sns.set_context('talk')
@@ -113,6 +113,9 @@ def Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt):
     plt.tight_layout()
     return None
 
+
+
+
 if __name__ == '__main__':
     os.chdir('..')
     path = os.path.abspath('BrainWeb')
@@ -120,57 +123,39 @@ if __name__ == '__main__':
     name = pond+'.nii'
     image = sitk.ReadImage(path+'/'+name)
     I=sitk.GetArrayViewFromImage(image)
-    # slice_num=90
-    # I=np.flip(I[slice_num])
+    slice_num=90
+    I=np.flip(I[slice_num])
 
 
-    # name_mask='t1_otsu_3d.nii'
-    # path_mask = os.path.abspath('BrainWeb')
-    # mask = sitk.ReadImage(path_mask+'/'+name_mask)
-    # mask=sitk.GetArrayViewFromImage(mask)
-    # mask = mask>0
-    # mask=mask.astype(bool)
-    # mask=mask[slice_num]
+    name_mask='t1_otsu_3d.nii'
+    path_mask = os.path.abspath('BrainWeb')
+    mask = sitk.ReadImage(path_mask+'/'+name_mask)
+    mask=sitk.GetArrayViewFromImage(mask)
+    mask = mask>0
+    mask=mask.astype(bool)
+    mask=mask[slice_num]
     
     os.chdir('2D')
-# #DWT input
-#     mother_wavelet='db'
-#     number_wavelet=4
-#     wavelet=mother_wavelet+'%d'%number_wavelet
-
-#     levels_dwt=3
-
-#     J=signal_2D.Add_Noise2D(I,20,mask)
-#     noise=J-I
-
-#     levels_dwt = 3
-
-#     aprox_list,hor_list,vert_list,diag_list=DWT_2D(J,wavelet,levels_dwt)
-
-    # Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt)
-
-    # plt.savefig('DWT 2d_multinivels.png',bbox_inches='tight')
     
+    
+    mother_wavelet='db'
+    number_wavelet=4
+    wavelet=mother_wavelet+'%d'%number_wavelet
+
+    levels_dwt=3
+
+    J=signal_2D.Add_Noise2D(I,20,mask)
+    noise=J-I
+
+    levels_dwt = 3
+
+    aprox_list,hor_list,vert_list,diag_list=DWT_2D(J,wavelet,levels_dwt)
+
+    Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt)
+
+    os.chdir('Figures')
+    plt.savefig('Multilevel.png',bbox_inches='tight')
 
 
-##########################################################################################
 
-
-# #DWT input
-#     mother_wavelet='db'
-#     number_wavelet=4
-#     wavelet=mother_wavelet+'%d'%number_wavelet
-
-#     J=signal_2D.Add_Noise2D(I,20,mask)*(1-mask)
-
-#     levels_dwt = 3
-
-#     aprox_list,hor_list,vert_list,diag_list=DWT_2D(J,wavelet,levels_dwt)
-
-#     Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt)
-
-#     plt.savefig('DWT 2d_otsu_multinivels.png',bbox_inches='tight')
-
-
-##########################################################################################
 
