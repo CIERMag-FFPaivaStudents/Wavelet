@@ -5,15 +5,32 @@ This evaluates the best way to estimate the standar deviation of a signal using 
 """
 
 import numpy as np
-import wavelet_1D
-import signal_1D
-import matplotlib.pyplot as plt
-import os
-import seaborn as sns
 from scipy.ndimage import convolve
 
 
 def SNR_Measure(I,Ihat):
+    """Measure of signal to noise ratio as defined in Coupé et al.
+    
+    Parameters
+    ----------
+    I: array
+        Input 2D array of noiseless image.
+    I_hat: array
+        Input 1D array of filtered image.
+        
+    Return
+    ------
+    SNR: float
+        Signal to noise ratio of the filtered image.
+        
+    References
+    ----------
+        COUPÉ, P.; MANJÓN, J. V.; ROBLES, M.; COLLINS, D. L. Adaptive
+        multiresolution non-local means filter for three-dimensional magnetic resonance
+        image denoising. IET Image Processing, [S. l.], v. 6, n. 5, p. 558, 2012. DOI:
+        10.1049/iet-ipr.2011.0161. Available at: https://digitallibrary.theiet.org/content/journals/10.1049/iet-ipr.2011.0161.
+    """
+    
     n = np.sum(np.power(I,2))
     diff = np.subtract(I,Ihat)
     d = np.sum(np.power(diff,2))
@@ -21,6 +38,28 @@ def SNR_Measure(I,Ihat):
     return SNR
 
 def CoC_Measure(I,Ihat):
+    """Measure of the coefficient of correlation as defined in Coupé et al.
+    
+    Parameters
+    ----------
+    I: array
+        Input 2D array of noiseless image.
+    I_hat: array
+        Input 1D array of filtered image.
+        
+    Return
+    ------
+    CoC: float
+        Coefficient of correlation between the noiseless image and the filtered image.
+        
+    References
+    ----------
+        COUPÉ, P.; MANJÓN, J. V.; ROBLES, M.; COLLINS, D. L. Adaptive
+        multiresolution non-local means filter for three-dimensional magnetic resonance
+        image denoising. IET Image Processing, [S. l.], v. 6, n. 5, p. 558, 2012. DOI:
+        10.1049/iet-ipr.2011.0161. Available at: https://digitallibrary.theiet.org/content/journals/10.1049/iet-ipr.2011.0161.
+    """
+
     meanI = np.mean(I)
     meanIhat = np.mean(Ihat)
     n = np.sum(np.multiply(I-meanI,Ihat-meanIhat))
@@ -29,6 +68,28 @@ def CoC_Measure(I,Ihat):
     return CoC
 
 def EPI_Measure(I, Ihat):
+    """Measure of edge preservation index as defined in Coupé et al.
+    
+    Parameters
+    ----------
+    I: array
+        Input 2D array of noiseless image.
+    I_hat: array
+        Input 1D array of filtered image.
+        
+    Return
+    ------
+    EPI: float
+        Edge preservation index of filtered image.
+        
+    References
+    ----------
+        COUPÉ, P.; MANJÓN, J. V.; ROBLES, M.; COLLINS, D. L. Adaptive
+        multiresolution non-local means filter for three-dimensional magnetic resonance
+        image denoising. IET Image Processing, [S. l.], v. 6, n. 5, p. 558, 2012. DOI:
+        10.1049/iet-ipr.2011.0161. Available at: https://digitallibrary.theiet.org/content/journals/10.1049/iet-ipr.2011.0161.
+    """
+
     laplacian_kernel = np.array([[[0, 0, 0],[0, 1, 0], [0, 0, 0]],
                                 [[0, 1, 0],[1, -6, 1],[0, 1, 0]],
                                 [[0, 0, 0],[0, 1, 0], [0, 0, 0]]])
@@ -47,6 +108,30 @@ def EPI_Measure(I, Ihat):
     return EPI
 
 def MSSIM_Measure(I, Ihat):
+
+    """Measure of mean structure similarity index measure as defined in Wang et al.
+    
+    Parameters
+    ----------
+    I: array
+        Input 2D array of noiseless image.
+        
+    I_hat: array
+        Input 1D array of filtered image.
+        
+    Return
+    ------
+    MSSIM: float
+        Measure of mean structure similarity index measure of the filtered image in relation to the noiseledd image.
+        
+    References
+    ----------
+        WANG, Z.; BOVIK, A. C.; SHEIKH, H. R.; SIMONCELLI, E. P. Image Quality
+        Assessment: From Error Visibility to Structural Similarity. IEEE Transactions on
+        Image Processing, [S. l.], v. 13, n. 4, p. 600–612, 2004. DOI: 10.1109/TIP.2003.819861.
+        Available at: http://ieeexplore.ieee.org/document/1284395/.
+    """
+
     x,y,z = np.mgrid[-2:3,-2:3,-2:3]
     d2 = x**2+y**2+z**2
     sigma=1.5
@@ -77,94 +162,3 @@ def MSSIM_Measure(I, Ihat):
 
 
 
-if __name__ == '__main__':
-
-    num_iterations=1
-    
-    
-    
-    delta_time=0.5
-    T2=100
-    freq=0.25 
-    size_array=2048
-    mean_set=0
-    levels=5
-    wavelet='db4'
-
-    sigma_input_list=np.arange(0,0.6,0.01)
-    
-    length_input=len(sigma_input_list)
-
-
-    for j in range(length_input):
-        # continue
-        sigma_input=sigma_input_list[j]
-        
-        sigma_output_matrix=np.zeros((num_iterations,8))
-        for i in range(num_iterations):
-            # print(j,i)
-            signal_pure,time=signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq)
-            
-            signal_noise = signal_1D.Add_Noise1D(signal_pure,mean_set,sigma_input)
-
-            snr=SNR_Measure(signal_noise,signal_pure)
-            coc = CoC_Measure(signal_noise,signal_pure)
-            epi = EPI_Measure(signal_noise,signal_pure)
-            ssim = MSSIM_Measure(signal_noise,signal_pure)
-        
-
-
-
-#     # Escrevendo na tabela
-#     Nome='Sigmas'
-#     tabela = open(Nome+'.txt','w')
-    
-#     ctes='#Número de Simulações={}, Wavelet Mãe={}, Número de Níveis={},p={},Número de pontos={}\n'.format(num_iterations,wavelet,levels,cut_point,size_array)
-#     # print(ctes)
-#     tabela.write(ctes)
-    
-#     nomes_metricas=['Msigma{}\tSsigma{}'.format(i,i) for i in range(8)]
-#     var='#'
-#     var+='\t'.join(nomes_metricas)
-#     var+='\n'
-#     # print(var)
-#     tabela.write(var)
-    
-#     pontos=''
-#     for j in range(length_input):
-#         for k in range(8):
-#           m,s=sigma_output_mean_list[j][k],sigma_output_std_dev_list[j][k]
-#           pontos+='{}\t{}'.format(m,s)
-#           pontos+= '\t'
-#         pontos+='\n'
-#     # print(pontos)
-#     tabela.write(pontos)
-    
-#     tabela.close()
-    
-    
-    
-
-    
-    SIGMA = np.loadtxt('Sigmas.txt').T
-    
-    symbols=['h','*','o','^','s','p','H']
-
-    plt.figure(figsize=(20,15))
-    sns.set()
-    sns.set_style('ticks')
-    sns.set_context('talk')
-    
-    m0,s0 = SIGMA[0:2]
-    for i in range(7):
-        # plt.clf()
-        mi,si = SIGMA[2*(i+1):2*(i+2)]
-        plt.errorbar(m0,mi,yerr=si,marker=symbols[i],mew=0,label='sigma{}'.format(i+1))
-        plt.plot(m0,m0,'k-',zorder=3)
-        plt.xlim(-0.05,0.65)
-        plt.ylim(-0.05,0.7)
-        plt.savefig('Grafico sigma{}.png'.format(i+1))
-    plt.xlabel(r'$\sigma_{input} (a.u.)$',fontsize=20)
-    plt.ylabel(r'$\sigma_{output} (a.u.)$',fontsize=20)
-    plt.legend(loc='best')
-    plt.savefig('Tudo junto.png')
