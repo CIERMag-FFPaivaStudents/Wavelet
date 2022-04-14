@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from signal_1D import Simulate_Signal1D, Add_Noise1D
 import seaborn as sns
-
+import os
 
 def MSE_Measure(S,S_hat):
     """Measures the Mean Square Error as recommended by Aggarwal et al.
@@ -100,18 +100,118 @@ def PRD_Measure(S,S_hat):
     return PRD
 
 
+def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list):
+    """Writes the metrics of a given simulation in a datasheet in .txt format.
+    
+    Parameters
+    ----------
+    data_name: string
+        Desired name of data_sheet archive.
+        
+    metrics_name_list: list of strings
+        Names of used metrics
+        
+    legnth_input: int
+        Size of sigma_input_list.
+    
+    metrics_mean_list: array
+        Array with the mean values of each metric in each input.
+
+    metrics_std_dev_list: array
+        Array with the standard deviation of each metric in each input.
+    
+    Return
+    ------
+
+    References
+    ----------
+    """
+    os.chdir('Data')
+    data = open(data_name +'.txt','w')
+    num_metrics = len(metrics_name_list)
+    variables_name_list=['Sigma_mean','Sigma_std_dev']
+
+    for metrics_name in metrics_name_list:
+        variables_name_list.append(metrics_name+'_mean')
+        variables_name_list.append(metrics_name+'_std_dev')
+    
+    data.write(parameters+'\n')
+
+    variables='#'
+    variables+='\t'.join(variables_name_list)
+    variables+='\n'
+    data.write(variables)
+    data_line=''
+
+    for j in range(length_input):
+        for k in range(num_metrics+1):
+          m,s=metrics_mean_list[j][k],metrics_std_dev_list[j][k]
+          data_line+='{}\t{}'.format(m,s)
+          data_line+= '\t'
+        data_line+='\n'
+
+    data.write(data_line)
+    data.close()
+
+    os.chdir('..')
+    return None
+
+
+def Show_data(data_name,figsize,metrics_name_list):
+    """Shows the metrics of a given simulation in plotted graph for each metric.
+    
+    Parameters
+    ----------
+    data_name: string
+        Desired name of data_sheet archive.
+        
+    figsize: tuple
+        Size of plt.figure. Width, height in inches.
+        
+    metrics_name_list: list of strings
+        Names of the used metrics
+
+    Return
+    ------
+
+    References
+    ----------
+    """
+    
+    Metrics = np.loadtxt(data_name +'.txt').T
+    plt.figure(figsize=figsize)
+    sns.set()
+    sns.set_style('ticks')
+    sns.set_context('talk')
+
+    os.chdir('Graphs')
+    m0,s0 = Metrics[0:2]
+    for i in range(num_metrics):
+        plt.clf()
+        mi,si = Metrics[2*(i+1):2*(i+2)]
+        plt.errorbar(m0,mi,yerr=si,color='k',marker='o',linestyle='none')
+        plt.xlabel('$\sigma_{input} (a.u.)$')
+        plt.ylabel(metrics_name_list[i])
+        plt.savefig(metrics_name_list[i]+'.png')
+    os.chdir('..')
+    
+    return None
+
+
+
+
 if __name__ == '__main__':
+
     delta_time=0.5
     T2=100
     freq=0.25 
     size_array=2048
     mean=0
     std_dev=0.01
-    
-    
+
+
     num_iterations=1
-    
-    
+
     sigma_input_list=np.arange(0,0.6,0.01)
 
     length_input=len(sigma_input_list)
@@ -120,98 +220,51 @@ if __name__ == '__main__':
 
     metrics_mean_list=np.zeros((length_input,num_metrics+1))
     metrics_std_dev_list=np.zeros((length_input,num_metrics+1))
-    
-    
+
 
     for j in range(length_input):
-        # continue
         sigma_input=sigma_input_list[j]
         
         metrics_matrix=np.zeros((num_iterations,num_metrics+1))
         
         for i in range(num_iterations):
-            # print(j,i)
             signal_pure,time=Simulate_Signal1D(size_array,delta_time,T2,freq)
             
             signal_noise = Add_Noise1D(signal_pure,mean,sigma_input)
 
-            
-
-            
 
             metrics_list = np.zeros(num_metrics+1)
-            
+
             metrics_list[0] = sigma_input
-            
-            
+
 
             MSE=MSE_Measure(signal_pure, signal_noise)
             metrics_list[1] = MSE
-            
+
             SNR = SNR_Measure1D(signal_pure,signal_noise)
             metrics_list[2] = SNR
-            
+
             PRD = PRD_Measure(signal_pure,signal_noise)
             metrics_list[3] = PRD
-            
+
 
             metrics_matrix[i]=metrics_list
 
-        # continue
         metrics_matrix = metrics_matrix.T
 
         metrics_mean=[metrics_list.mean() for metrics_list in metrics_matrix]
         metrics_mean = np.array(metrics_mean).T
         metrics_mean_list[j]=metrics_mean
-    
+
         metrics_std_dev=[np.std(metrics_list) for metrics_list in metrics_matrix]
         metrics_std_dev = np.array(metrics_std_dev).T
         metrics_std_dev_list[j]=metrics_std_dev
 
+    data_name = 'Metrics_1D'
+    metrics_name_list =['MSE','SNR','PRD']
+    parameters  = ''
+    
+    Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list)
 
-
-    # # Escrevendo na tabela
-    # Nome='Metricas'
-    # tabela = open(Nome+'.txt','w')
-    
-    
-    # nomes_metricas=['Sigma_mean','Sigma_std_dev','MSE_mean','MSE_std_dev','SNR_mean','SNR_std_dev','PRD_mean','PRD_std_dev']
-    # var='#'
-    # var+='\t'.join(nomes_metricas)
-    # var+='\n'
-    # tabela.write(var)
-    
-    # pontos=''
-    # for j in range(length_input):
-    #     for k in range(num_metrics+1):
-    #       m,s=metrics_mean_list[j][k],metrics_std_dev_list[j][k]
-    #       pontos+='{}\t{}'.format(m,s)
-    #       pontos+= '\t'
-    #     pontos+='\n'
-    # tabela.write(pontos)
-    
-    # tabela.close()
-    
-    
-    
-
-    
-    # Metrics = np.loadtxt('Metricas.txt').T
-    
-    # symbols=['h','*','o','^','s','p','H']
-    # plt.figure(figsize=(12,9))
-    # sns.set()
-    # sns.set_style('ticks')
-    # sns.set_context('talk')
-    
-    # nomes_metricas =['MSE','SNR','PRD']
-    # m0,s0 = Metrics[0:2]
-    # for i in range(num_metrics):
-    #     plt.clf()
-    #     mi,si = Metrics[2*(i+1):2*(i+2)]
-    #     plt.errorbar(m0,mi,yerr=si,color='k',marker='o',linestyle='none')
-    #     plt.xlabel('$\sigma_{input} (a.u.)$')
-    #     plt.ylabel(nomes_metricas[i])
-    #     plt.savefig('Grafico '+nomes_metricas[i]+'.png')
-
-        
+    figsize=(12,9)
+    Show_data(data_name,figsize,metrics_name_list)

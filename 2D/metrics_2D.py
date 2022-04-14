@@ -91,9 +91,9 @@ def EPI_Measure(I, Ihat):
         10.1049/iet-ipr.2011.0161. Available at: https://digitallibrary.theiet.org/content/journals/10.1049/iet-ipr.2011.0161.
     """
     
-    laplacian_kernel = np.array([[[0, 0, 0],[0, 1, 0], [0, 0, 0]],
-                                [[0, 1, 0],[1, -6, 1],[0, 1, 0]],
-                                [[0, 0, 0],[0, 1, 0], [0, 0, 0]]])
+    laplacian_kernel = np.array([[0,1,0],
+                                 [1,-4,1],
+                                 [0,1,0]])
     
 
     lap_I = convolve(I, laplacian_kernel)
@@ -132,13 +132,13 @@ def MSSIM_Measure(I, Ihat):
         Image Processing, [S. l.], v. 13, n. 4, p. 600–612, 2004. DOI: 10.1109/TIP.2003.819861.
         Available at: http://ieeexplore.ieee.org/document/1284395/.
     """
-    
-    x,y,z = np.mgrid[-2:3,-2:3,-2:3]
-    d2 = x**2+y**2+z**2
-    sigma=1.5
-    gaus_const = 1/((2*np.pi)**(3/2)*sigma**(1/2))
-    gaussian_kernel = gaus_const*np.exp(-d2/(2*sigma**2)) 
-    gaussian_kernel = gaussian_kernel/np.sum(gaussian_kernel) 
+
+    gaussian_kernel = np.array([[1, 4, 7, 4, 1],
+                                [4, 16, 26, 16, 4], 
+                                [7, 26, 41, 26, 7],
+                                [4, 16, 26, 16, 4],
+                                [1, 4, 7, 4, 1]])/273
+
 
     C1 = 0.01*np.max(I)
     C2 = 0.03*np.max(I)
@@ -160,9 +160,113 @@ def MSSIM_Measure(I, Ihat):
     return np.mean(SSIM)
 
 
+
+
+def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list):
+    """Writes the metrics of a given simulation in a datasheet in .txt format.
+    
+    Parameters
+    ----------
+    data_name: string
+        Desired name of data_sheet archive.
+        
+    metrics_name_list: list of strings
+        Names of used metrics
+        
+    legnth_input: int
+        Size of sigma_input_list.
+    
+    metrics_mean_list: array
+        Array with the mean values of each metric in each input.
+
+    metrics_std_dev_list: array
+        Array with the standard deviation of each metric in each input.
+    
+    Return
+    ------
+
+    References
+    ----------
+    """
+
+    os.chdir('Data')
+    data = open(data_name +'.txt','w')
+    num_metrics = len(metrics_name_list)
+    variables_name_list=['Sigma_mean','Sigma_std_dev']
+
+    for metrics_name in metrics_name_list:
+        variables_name_list.append(metrics_name+'_mean')
+        variables_name_list.append(metrics_name+'_std_dev')
+    
+    data.write(parameters+'\n')
+
+    variables='#'
+    variables+='\t'.join(variables_name_list)
+    variables+='\n'
+    data.write(variables)
+    data_line=''
+
+    for j in range(length_input):
+        for k in range(num_metrics+1):
+          m,s=metrics_mean_list[j][k],metrics_std_dev_list[j][k]
+          data_line+='{}\t{}'.format(m,s)
+          data_line+= '\t'
+        data_line+='\n'
+
+    data.write(data_line)
+    data.close()
+
+    os.chdir('..')
+    return None
+
+
+
+
+def Show_data(data_name,figsize,metrics_name_list):
+    """Shows the metrics of a given simulation in plotted graph for each metric.
+    
+    Parameters
+    ----------
+    data_name: string
+        Desired name of data_sheet archive.
+        
+    figsize: tuple
+        Size of plt.figure. Width, height in inches.
+        
+    metrics_name_list: list of strings
+        Names of the used metrics
+
+    Return
+    ------
+
+    References
+    ----------
+    """
+    
+    Metrics = np.loadtxt(data_name +'.txt').T
+    plt.figure(figsize=figsize)
+    sns.set()
+    sns.set_style('ticks')
+    sns.set_context('talk')
+
+    os.chdir('Graphs')
+    m0,s0 = Metrics[0:2]
+    for i in range(num_metrics):
+        plt.clf()
+        mi,si = Metrics[2*(i+1):2*(i+2)]
+        plt.errorbar(m0,mi,yerr=si,color='k',marker='o',linestyle='none')
+        plt.xlabel('$\sigma_{input} (a.u.)$')
+        plt.ylabel(metrics_name_list[i])
+        plt.savefig(metrics_name_list[i]+'.png')
+    
+    os.chdir('..')
+    
+    return None
+
+
+    
 if __name__ == '__main__':
     num_iterations=1
-    
     
     noise_level_list=np.arange(0,100,5)
 
@@ -188,15 +292,13 @@ if __name__ == '__main__':
     path_mask = os.path.abspath('BrainWeb')
     mask = sitk.ReadImage(path_mask+'/'+name_mask)
     mask=sitk.GetArrayViewFromImage(mask)
-    # mask = mask>0
     mask=mask.astype(bool)
     mask=mask[slice_num]
 
     os.chdir('2D')
     
-    # J = Add_Noise2D(I,noise_level,mask)
+
     for j in range(length_input):
-        # continue
         noise_level=noise_level_list[j]
         
         metrics_matrix=np.zeros((num_iterations,num_metrics+1))
@@ -205,10 +307,6 @@ if __name__ == '__main__':
             
             
             J = Add_Noise2D(I,noise_level,mask)
-
-            
-
-            
 
             metrics_list = np.zeros(num_metrics+1)
             
@@ -231,61 +329,22 @@ if __name__ == '__main__':
 
             metrics_matrix[i]=metrics_list
 
-        # # continue
-        # metrics_matrix = metrics_matrix.T
+        metrics_matrix = metrics_matrix.T
 
-        # metrics_mean=[metrics_list.mean() for metrics_list in metrics_matrix]
-        # metrics_mean = np.array(metrics_mean).T
-        # metrics_mean_list[j]=metrics_mean
+        metrics_mean=[metrics_list.mean() for metrics_list in metrics_matrix]
+        metrics_mean = np.array(metrics_mean).T
+        metrics_mean_list[j]=metrics_mean
     
-        # metrics_std_dev=[np.std(metrics_list) for metrics_list in metrics_matrix]
-        # metrics_std_dev = np.array(metrics_std_dev).T
-        # metrics_std_dev_list[j]=metrics_std_dev
-
+        metrics_std_dev=[np.std(metrics_list) for metrics_list in metrics_matrix]
+        metrics_std_dev = np.array(metrics_std_dev).T
+        metrics_std_dev_list[j]=metrics_std_dev
 
 
-    # # Escrevendo na tabela
-    # Nome='Metricas_2D'
-    # tabela = open(Nome+'.txt','w')
-    
-    
-    # nomes_metricas=['Sigma_mean','Sigma_std_dev','SNR_mean','SNR_std_dev','CoC_mean','CoC_std_dev','EPI_mean','EPI_std_dev','MSSIM_mean','MSSIM_std_dev']
-    # var='#'
-    # var+='\t'.join(nomes_metricas)
-    # var+='\n'
-    # tabela.write(var)
-    
-    # pontos=''
-    # for j in range(length_input):
-    #     for k in range(num_metrics+1):
-    #       m,s=metrics_mean_list[j][k],metrics_std_dev_list[j][k]
-    #       pontos+='{}\t{}'.format(m,s)
-    #       pontos+= '\t'
-    #     pontos+='\n'
-    # tabela.write(pontos)
-    
-    # tabela.close()
-    
-    
-    
+    data_name = 'Metrics_2D'
+    metrics_name_list = ['SNR','CoC','EPI','MSSIM']
 
-    
-    # Metrics = np.loadtxt('Metricas.txt').T
-    
-    # symbols=['h','*','o','^','s','p','H']
-    # plt.figure(figsize=(12,9))
-    # sns.set()
-    # sns.set_style('ticks')
-    # sns.set_context('talk')
-    
-    # nomes_metricas =['MSE','SNR','PRD']
-    # m0,s0 = Metrics[0:2]
-    # for i in range(num_metrics):
-    #     plt.clf()
-    #     mi,si = Metrics[2*(i+1):2*(i+2)]
-    #     plt.errorbar(m0,mi,yerr=si,color='k',marker='o',linestyle='none')
-    #     plt.xlabel('$\sigma_{input} (a.u.)$')
-    #     plt.ylabel(nomes_metricas[i])
-    #     plt.savefig('Grafico '+nomes_metricas[i]+'.png')
+    parameters=''
+    Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list)
 
-        
+    figsize=(12,9)
+    Show_data(data_name,figsize,metrics_name_list)

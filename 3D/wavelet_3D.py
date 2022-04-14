@@ -33,12 +33,15 @@ if __name__ == '__main__':
     
     aprox_coef=coef_list[0]
     detail_coef_dict=coef_list[1]
-    
-    os.chdir('coeficients')
-    
+
+    os.chdir('Data/Coefficients')
+
+
     aprox_coef_name='aaa'
     name_file_aprox=pond+'_'+aprox_coef_name+'_3'+'.nii'
     nift_file_aprox = sitk.GetImageFromArray(aprox_coef)
+    
+
     sitk.WriteImage(nift_file_aprox,name_file_aprox)
     
     for detail_coef_name in detail_coef_dict.keys():
