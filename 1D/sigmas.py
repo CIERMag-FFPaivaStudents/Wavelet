@@ -14,6 +14,131 @@ import os
 import seaborn as sns
 
 
+
+
+
+def Sigma2(signal_noise,cut_point):
+    """Square root of the signal's end variance.
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    size_array = len(signal_noise)
+    end_slice=int((100-cut_point)*size_array/100)
+    noise_estimate=signal_noise[end_slice:]
+    sigma2=np.std(noise_estimate)
+    return sigma2
+
+
+def Sigma3(detail_coef_list,levels):
+    """Average standard deviation of the detail coefficients.
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    sigma3 = 0
+    for k in range(0, levels):
+        sigma3+=np.std(detail_coef_list[k+1])
+    sigma3 /=levels
+    return sigma3
+
+def Sigma4(detail_coef_list):
+    """Median of the last detail coeficient level.
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    median_factor = 0.675
+    sigma4 = np.median(np.abs(detail_coef_list[levels]))
+    sigma4/=median_factor
+    return sigma4
+
+def Sigma5(detail_coef_list):
+    """Median of the concatenation of the detail coefficients.
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    median_factor = 0.675
+    concatenated_detail_coef = np.hstack((detail_coef_list[1:]))
+    concatenated_detail_coef = np.abs(concatenated_detail_coef)
+    sigma5 = np.median(concatenated_detail_coef)
+    sigma5 /= median_factor
+    return sigma5
+
+def Sigma6(detail_coef_list,levels):
+    """Median detail coefficient median.
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    median_factor = 0.675
+    median_list=np.zeros(levels)
+
+    for k in range(0,levels):
+        median_list[k] = np.median(np.abs(detail_coef_list[k+1]))
+    sigma6 = np.median(median_list)/median_factor
+
+    return sigma6
+
+def Sigma7(detail_coef_list,levels):
+    """Average detail coefficient median
+    
+    Parameters
+    ----------
+
+        
+    Return
+    ------
+        
+    References
+    ----------
+    """
+    median_factor = 0.675
+    median_list=np.zeros(levels)
+
+    for k in range(0,levels):
+        median_list[k] = np.median(np.abs(detail_coef_list[k+1]))
+
+    sigma7 = median_list.mean()/median_factor
+    
+    return sigma7
+
 if __name__ == '__main__':
 
     num_iterations=1
@@ -60,41 +185,16 @@ if __name__ == '__main__':
             
             
             cut_point = 30
-            end_slice=int((100-cut_point)*size_array/100)
-            noise_estimate=signal_noise[end_slice:]
-            sigma2=np.std(noise_estimate)
-            sigma_output_list[2]=sigma2
+            sigma_output_list[2]=Sigma2(signal_noise,cut_point)
             
             
-            sigma3 = 0
-            for k in range(0, levels):
-                sigma3+=np.std(detail_coef_list[k+1])
-            sigma3 /=levels
-            sigma_output_list[3]=sigma3
+            sigma_output_list[3]=Sigma3(detail_coef_list,levels)
+            sigma_output_list[4]=Sigma4(detail_coef_list)
+            sigma_output_list[5]=Sigma5(detail_coef_list)
+            sigma_output_list[6]=Sigma6(detail_coef_list, levels)
+            sigma_output_list[7]=Sigma7(detail_coef_list, levels)
             
-            
-            median_factor = 0.675
-            sigma4 = np.median(np.abs(detail_coef_list[levels]))
-            sigma4/=median_factor
-            sigma_output_list[4]=sigma4
-            
-            
-            concatenated_detail_coef = np.hstack((detail_coef_list[1:]))
-            concatenated_detail_coef = np.abs(concatenated_detail_coef)
-            sigma5 = np.median(concatenated_detail_coef)
-            sigma5 /= median_factor
-            sigma_output_list[5]=sigma5
-            
-            
-            median_list=np.zeros(levels)
-            for k in range(0,levels):
-                median_list[k] = np.median(np.abs(detail_coef_list[k+1]))
-            sigma6 = np.median(median_list)/median_factor
-            sigma_output_list[6]=sigma6
-            
-            
-            sigma7 = median_list.mean()/median_factor
-            sigma_output_list[7]=sigma7
+
             
             
             sigma_output_matrix[i]=sigma_output_list
@@ -116,11 +216,12 @@ if __name__ == '__main__':
     parameters = '#Número de Simulações={}, Wavelet Mãe={}, Número de Níveis={},p={},Número de pontos={}'.format(num_iterations,wavelet,levels,cut_point,size_array)
     metrics_name_list = ['sigma{}'.format(i+1) for i in range(7)]
 
-    metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,sigma_output_mean_list,sigma_output_std_dev_list)
+    # metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,sigma_output_mean_list,sigma_output_std_dev_list)
 
 
-
+    os.chdir('Data')
     SIGMA = np.loadtxt('Sigma.txt').T
+    os.chdir('..')
     
     symbols=['h','*','o','^','s','p','H']
 
@@ -133,7 +234,7 @@ if __name__ == '__main__':
     m0,s0 = SIGMA[0:2]
     for i in range(7):
         mi,si = SIGMA[2*(i+1):2*(i+2)]
-        plt.errorbar(m0,mi,yerr=si,marker=symbols[i],mew=0,label='sigma{}'.format(i+1))
+        plt.errorbar(m0,mi,yerr=si,xerr=None,marker='o',ms=20,label='sigma{}'.format(i+1))
         plt.plot(m0,m0,'k-',zorder=3)
         plt.xlim(-0.05,0.65)
         plt.ylim(-0.05,0.7)
@@ -144,8 +245,23 @@ if __name__ == '__main__':
     plt.legend(loc='best',fontsize=40)
     plt.savefig('All together.png')
     os.chdir('..')
-    
 
+
+    os.chdir('Graphs')
+    plt.clf()
+    m0,s0 = SIGMA[0:2]
+    for i in range(7):
+        mi,si = SIGMA[2*(i+1):2*(i+2)]
+        error = np.abs(mi-m0)/m0
+        plt.plot(m0,error,marker='o',ms=20,label='sigma{}'.format(i+1)) 
+        #How do I deal with the error bars? Propagate them?
+        plt.ylim(0,0.1)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+    plt.xlabel(r'$\sigma_{input}$',fontsize=40)
+    plt.ylabel(r'$\frac{\|\sigma_{output} - \sigma_{input}\| }{\sigma_{input}} $',fontsize=40)
+    plt.legend(loc='best',fontsize=40)
+    plt.savefig('Error.png')
 
 
 
