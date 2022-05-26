@@ -37,41 +37,18 @@ def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
     return sigma
 
 
-def IDWT_1D(last_approx_coef,detail_coef_list,wavelet,levels):
-    """
+def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg):
+
+    coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
+    ca = coefficients[0]
+    cd = coefficients[1:] 
+
+    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
     
-    Parameters
-    ----------
-
-
-    Return
-    ------
-
-    References
-    ----------
-    """
+    coefficients_smooth  = [ca]+cd_smooth
+    signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
     
-    detail_coef_hat_list = detail_coef_list.copy()
-    detail_coef_hat_list.reverse()
-    
-    approx_coef_hat_list= (levels+1)*[None]
-    
-    approx_coef_hat_list[0] = last_approx_coef
-
-    for level in range(levels+1):
-        approx_coef_hat = pywt.idwt(approx_coef_hat_list[level], detail_coef_hat_list[level], wavelet)
-        
-        if level<levels:
-            ld , la = len(detail_coef_hat_list[level+1]),len(approx_coef_hat)
-            if la>ld:
-                approx_coef_hat_list[level+1] = approx_coef_hat[:-1]
-            else:
-                approx_coef_hat_list[level+1] = approx_coef_hat
-
-    signal_hat = approx_coef_hat_list[-1]
-    return signal_hat
-
-
+    return signal_smooth
 
 def Thresholding(data,T,mode):
     """
@@ -142,7 +119,7 @@ if __name__ == "__main__":
     freq=0.25
     size_array=2048
     mean=0
-    std_dev=0.05
+    std_dev=0.1
 
 #DWT input
     mother_wavelet='db'
@@ -150,44 +127,48 @@ if __name__ == "__main__":
     wavelet=mother_wavelet+'%d'%number_wavelet
     
     
-    levels_dwt = 6
+    levels_dwt = 4
     
 
     signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq)
     signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev)
-    
-    ca,cd = wavelet_1D.DWT_1D(signal_noise,wavelet,levels_dwt)
+
     SNR0=metrics_1D.SNR_Measure1D(signal_pure,signal_noise)
-    # print('SNR0',SNR0)
 
 
-    signal_test = IDWT_1D(ca[-1],cd,wavelet,levels_dwt)
+    coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
+
+
+
+    signal_test = pywt.waverec(coefficients, wavelet)
     SNR_test=metrics_1D.SNR_Measure1D(signal_pure,signal_test)
-    # plt.plot(ca_hat[1],'bo-')
-    # plt.plot(ca[2],'ro')
-    # plt.xlim(500,520)
-    
-    
-    # plt.plot(time,signal_noise,'b-')
-    # plt.plot(time,signal_test,'ro')
-    # plt.xlim(2040,2050)
-    # plt.xlim(-5,5)
+
+    ca = coefficients[0]
+    cd = coefficients[1:] 
+
 
     mode = 'soft'
+    alg = 'SURE'
 
-    cd_smooth = Adaptive_smoothing(signal_pure,cd,mode,alg='Bayes')
-    signal_smooth = IDWT_1D(ca[-1],cd_smooth,wavelet,levels_dwt)
+    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
+    
+    coefficients_smooth  = [ca]+cd_smooth
+    signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
+
+    # signal_smooth_func = Wavelet_filter(signal_noise, wavelet, levels_dwt, mode, alg)
 
     SNR1=metrics_1D.SNR_Measure1D(signal_pure,signal_smooth)
-    # plt.plot(signal_noise,signal_test,'bo')
-    # plt.plot(signal_noise,signal_smooth,'r-')
 
-    # plt.xlim(-0.1,0.1)
-    fig=plt.figure()
+
+    fig=plt.figure(figsize=(20,20))
     ax1=fig.add_subplot(2,1,1)
-    ax1.plot(time,signal_noise)
+    ax1.plot(time,np.real(signal_noise))
+    ax1.set_title('Noisy signal',fontsize=20)
 
     ax1=fig.add_subplot(2,1,2)
-    ax1.plot(time,signal_smooth)
-    
-    print(std_dev,SNR0,SNR1,(SNR1-SNR0)/SNR0)
+    ax1.plot(time,np.real(signal_smooth))
+    ax1.set_title('Filtered signal',fontsize=20)
+
+
+    print('To check if the SNR increased.')
+    print(std_dev,SNR0,SNR1)

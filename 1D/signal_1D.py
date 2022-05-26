@@ -10,7 +10,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 
-def Simulate_Signal1D(size_array,delta_time,T2,freq):
+def Simulate_Signal1D(size_array,delta_time,T2,freq,real=True):
     """Simulates the free induction decay (FID) signal of the magnetic ressonance phenomenon as described in Brown et al and Mazzola.
     
     Parameters
@@ -19,13 +19,13 @@ def Simulate_Signal1D(size_array,delta_time,T2,freq):
         Desired length of the simulated 1D signal.
         
     delta_time: float
-        Interval between consecutive points of time.
+        Interval between consecutive points of time in ms.
         
     T2: float
-        Transversal relaxation time of tissue.
+        Transversal relaxation time of tissue in ms.
         
     freq: float
-        Precession frequency of hidrogen atoms in the tissue.
+        Precession frequency of hidrogen atoms in the tissue in kHz.
         
     Return
     ------
@@ -48,8 +48,11 @@ def Simulate_Signal1D(size_array,delta_time,T2,freq):
         129
     """
     time=np.arange(0, size_array*delta_time, delta_time)
-    signal_pure=(np.exp(-time/T2))*np.cos(freq*time)
-    return signal_pure, time
+    signal_pure= np.exp(-time/T2 + 1j*2*np.pi*freq*time)
+    if real:
+        return np.real(signal_pure),time
+    else:
+        return signal_pure, time
 
 def Add_Noise1D(signal_pure,mean,std_dev):
     """Adds gaussian noise to a 1D free induction decay signal as described in Aja-Fernández et al.
@@ -194,7 +197,7 @@ def Noise_figure(name,size_array_set,delta_time_set,T2_set,freq_set,mean_list,st
 if __name__ == '__main__':
     delta_time_set=0.5
     T2_set=100
-    freq_set=0.25 
+    freq_set=0.25
     size_array_set=2048
     mean_set=0
     std_dev_set=0.01

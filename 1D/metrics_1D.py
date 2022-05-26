@@ -100,7 +100,7 @@ def PRD_Measure(S,S_hat):
     return PRD
 
 
-def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list):
+def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list,folder=''):
     """Writes the metrics of a given simulation in a datasheet in .txt format.
     
     Parameters
@@ -126,7 +126,8 @@ def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_
     References
     ----------
     """
-    os.chdir('Data')
+    os.chdir('Data'+folder)
+    
     data = open(data_name +'.txt','w')
     os.chdir('..')
     num_metrics = len(metrics_name_list)
