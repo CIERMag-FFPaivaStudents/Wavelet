@@ -100,7 +100,7 @@ def PRD_Measure(S,S_hat):
     return PRD
 
 
-def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list):
+def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list,folder=''):
     """Writes the metrics of a given simulation in a datasheet in .txt format.
     
     Parameters
@@ -126,8 +126,10 @@ def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_
     References
     ----------
     """
-    os.chdir('Data')
+    os.chdir('Data'+folder)
+    
     data = open(data_name +'.txt','w')
+    os.chdir('..')
     num_metrics = len(metrics_name_list)
     variables_name_list=['Sigma_mean','Sigma_std_dev']
 
@@ -157,7 +159,7 @@ def Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_
     return None
 
 
-def Show_data(data_name,figsize,metrics_name_list):
+def Show_data(data_name,figsize,metrics_name_list,path='Graphs'):
     """Shows the metrics of a given simulation in plotted graph for each metric.
     
     Parameters
@@ -177,15 +179,20 @@ def Show_data(data_name,figsize,metrics_name_list):
     References
     ----------
     """
-    
+
+
+    os.chdir('1D/Data')
     Metrics = np.loadtxt(data_name +'.txt').T
+    os.chdir('..')
+
     plt.figure(figsize=figsize)
     sns.set()
     sns.set_style('ticks')
     sns.set_context('talk')
 
-    os.chdir('Graphs')
+    os.chdir(path)
     m0,s0 = Metrics[0:2]
+    num_metrics = len(metrics_name_list)
     for i in range(num_metrics):
         plt.clf()
         mi,si = Metrics[2*(i+1):2*(i+2)]
@@ -194,7 +201,7 @@ def Show_data(data_name,figsize,metrics_name_list):
         plt.ylabel(metrics_name_list[i])
         plt.savefig(metrics_name_list[i]+'.png')
     os.chdir('..')
-    
+    os.chdir('..')
     return None
 
 
