@@ -19,7 +19,7 @@ import seaborn as sns
 from scipy import fft
 
 
-def plot(signal, signal_pure,time,delta_time,title,freq):
+def plot(signal1,label1,signal2,label2,time,delta_time,title,freq):
     size_y,size_x=1,2
     figure = plt.figure(figsize=(12*size_y,6*size_x))
     sns.set()
@@ -28,20 +28,20 @@ def plot(signal, signal_pure,time,delta_time,title,freq):
 
 
     ax1 = figure.add_subplot(2,1,1)
-    ax1.plot(time,np.real(signal),'r-')
+    ax1.plot(time,np.real(signal1),'r-')
     ax1.set_ylim(-1,1)
     ax1.set_ylabel('Signal Amplitude (a.u.)')
     ax1.set_xlabel('Time (ms)')
     ax1.set_title(title,fontsize=23)
 
-    size_array = len(signal)
-    yf=fft.fft(signal)
+    size_array = len(signal1)
+    yf=fft.fft(signal1)
     xf=fft.fftfreq(size_array,delta_time)
     xf=fft.fftshift(xf)
     yplot=np.abs((fft.fftshift(yf)))
 
-    size_array = len(signal_pure)
-    yf0=fft.fft(signal_pure)
+    size_array = len(signal2)
+    yf0=fft.fft(signal2)
     xf0=fft.fftfreq(size_array,delta_time)
     xf0=fft.fftshift(xf0)
     yplot0=np.abs((fft.fftshift(yf0)))
@@ -49,14 +49,14 @@ def plot(signal, signal_pure,time,delta_time,title,freq):
     ax2 = figure.add_subplot(2,1,2)
     offset = 50
 
-    ax2.plot(xf,yplot+2*offset,label = 'Noisy')
-    ax2.plot(xf,yplot0+offset,label = 'Noiseless')
+    ax2.plot(xf,yplot0+2*offset,label = label2)
+    ax2.plot(xf,yplot+offset,label = label1)
     ax2.plot(xf,yplot-yplot0,label = 'Residue')
 
     ax2.set_ylabel('Spectral Amplitude (a.u.)')
     ax2.set_xlabel('Frequency (kHz)')
     
-    plt.legend(loc=1)
+    plt.legend(loc='best')
     ax2.set_ylim(-105,305)
     
 
@@ -77,6 +77,7 @@ if __name__ == '__main__':
     delta_time=0.5
     T2=100
     freq=0.25
+    # freq_title = '025'
     size_array=2048
     mean=0
     std_dev=0.1
@@ -85,13 +86,22 @@ if __name__ == '__main__':
 
     signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev)
     
+    # os.chdir('Figures/FID_FFT/Paiva/freq '+freq_title)
     os.chdir('Figures/FID_FFT')
     title='Noisy signal'
-    plot(signal_noise,signal_pure,time,delta_time,title,freq)
+    plot(signal_noise,'Noisy',signal_pure,'Noiseless',time,delta_time,title,freq)
 
     plt.clf()
     os.chdir('..')
     os.chdir('..')
+    # os.chdir('..')
+    # os.chdir('..')
+
+    # signal_pure_real,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,real=True)
+
+    # signal_noise_real = signal_1D.Add_Noise1D(signal_pure_real,mean,std_dev)
+
+
 
     for num_params in range(1,25):
 
@@ -103,26 +113,24 @@ if __name__ == '__main__':
         noise_estimator, mode, wavelet, levels_dwt = params[1:]
         noise_estimator,levels_dwt = int(noise_estimator),int(levels_dwt)
 
-    #Simulation input
-        delta_time=0.5
-        T2=100
-        freq=0.25
-        size_array=2048
-        mean=0
-        std_dev=0.1
-    
 
+  
     
     
-    
+        # os.chdir('Figures/FID_FFT/Paiva/freq '+freq_title)
         os.chdir('Figures/FID_FFT')
         
         alg = 'SURE'
-        signal_smooth = filter_1D.Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg)
+        signal_smooth = filter_1D.Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,'SURE',std_dev)
         
         
         title='Smooth sigma {} and params {}'.format(std_dev,num_params)
-        plot(signal_smooth, signal_pure,time,delta_time,title,freq)
+        plot(signal_smooth,'Smooth',signal_noise,'Noisy',time,delta_time,title,freq)
+        
+        # signal_smooth_real = filter_1D.Wavelet_filter(signal_noise_real,wavelet,levels_dwt,mode,alg)
+        # plot(signal_noise_real,'Noisy',signal_smooth_real,'Smooth',time,delta_time,title+' real',freq)
     
         os.chdir('..')
         os.chdir('..')
+        # os.chdir('..')
+        # os.chdir('..')

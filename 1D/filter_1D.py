@@ -33,15 +33,16 @@ def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
 
     elif num==5:
         sigma = sigmas.Sigma5(detail_coef_list)
-
+    
+    # print('sigma',sigma)
     return sigma
 
 
-def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg):
+def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg,sigma):
 
     coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
     ca = coefficients[0]
-    cd = coefficients[1:] 
+    cd = coefficients[1:]
 
     cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
     
@@ -96,11 +97,20 @@ def Adaptive_smoothing(signal,detail_coef_list,mode,num=5,alg='SURE'):
     smooth_detail_coef_list = len(detail_coef_list)*[None]
     for i in range(len(detail_coef_list)):
         size_coef = len(detail_coef_list[i])
-        
+
+
         if alg == 'SURE':
             T=sigma*np.sqrt(2*np.log(size_coef))
+            # T=sigma*np.sqrt(2*np.log(2048))
+            
+            # print('\tsigma',sigma)
+            # print(T,detail_coef_list[i].min(),detail_coef_list[i].max(),size_coef)
+
+
         elif alg == 'Bayes':
             T = sigma**2 / np.std(signal)
+            # print(T,detail_coef_list[i].min(),detail_coef_list[i].max())
+
 
         smooth_detail_coef= Thresholding(detail_coef_list[i],T,mode)
         smooth_detail_coef_list[i] = smooth_detail_coef
@@ -131,6 +141,7 @@ if __name__ == "__main__":
     
 
     signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq)
+    # signal_pure*=100
     signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev)
 
     SNR0=metrics_1D.SNR_Measure1D(signal_pure,signal_noise)
