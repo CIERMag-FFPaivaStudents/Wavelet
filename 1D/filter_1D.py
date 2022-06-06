@@ -11,7 +11,7 @@ import metrics_1D
 import numpy as np
 import matplotlib.pyplot as plt
 import pywt
-
+from scipy import fft
 
 def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
     """
@@ -38,7 +38,7 @@ def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
     return sigma
 
 
-def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg,sigma):
+def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg):
 
     coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
     ca = coefficients[0]
@@ -118,12 +118,8 @@ def Adaptive_smoothing(signal,detail_coef_list,mode,num=5,alg='SURE'):
 
 
 
-
-
-
-
 if __name__ == "__main__":
-#Simulation input
+    #Simulation parameters
     delta_time=0.5
     T2=100
     freq=0.25
@@ -131,24 +127,30 @@ if __name__ == "__main__":
     mean=0
     std_dev=0.1
 
-#DWT input
+    #DWT parameters
     mother_wavelet='db'
     number_wavelet=4
     wavelet=mother_wavelet+'%d'%number_wavelet
     
     
     levels_dwt = 4
-    
+   
+    mode = 'soft'
+    alg = 'SURE'
 
-    signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq)
-    # signal_pure*=100
-    signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev)
+    signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq, False)
+    signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev, False)
+
+    plt.figure()
+    plt.plot(time, np.real(signal_noise))
+    plt.plot(time, np.imag(signal_noise))
+    plt.show()
+
 
     SNR0=metrics_1D.SNR_Measure1D(signal_pure,signal_noise)
 
 
     coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
-
 
 
     signal_test = pywt.waverec(coefficients, wavelet)
@@ -157,9 +159,6 @@ if __name__ == "__main__":
     ca = coefficients[0]
     cd = coefficients[1:] 
 
-
-    mode = 'soft'
-    alg = 'SURE'
 
     cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
     
@@ -180,6 +179,26 @@ if __name__ == "__main__":
     ax1.plot(time,np.real(signal_smooth))
     ax1.set_title('Filtered signal',fontsize=20)
 
-
     print('To check if the SNR increased.')
     print(std_dev,SNR0,SNR1)
+    
+    plt.figure()
+    size_array = len(signal_noise)
+    yf=fft.fft(signal_noise)
+    xf=fft.fftfreq(size_array,delta_time)
+    xf=fft.fftshift(xf)
+    yplot=fft.fftshift(yf)
+    plt.plot(xf, yplot.real)
+    plt.plot(xf, yplot.imag)
+    plt.plot(xf, np.abs(yplot))
+
+    plt.figure()
+    size_array = len(signal_smooth)
+    yf=fft.fft(signal_smooth)
+    xf=fft.fftfreq(size_array,delta_time)
+    xf=fft.fftshift(xf)
+    yplot=fft.fftshift(yf)
+    plt.plot(xf, yplot.real)
+    plt.plot(xf, yplot.imag)
+    plt.plot(xf, np.abs(yplot))
+    plt.show()

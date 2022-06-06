@@ -54,7 +54,7 @@ def Simulate_Signal1D(size_array,delta_time,T2,freq,real=True):
     else:
         return signal_pure, time
 
-def Add_Noise1D(signal_pure,mean,std_dev):
+def Add_Noise1D(signal_pure,mean,std_dev,real=True):
     """Adds gaussian noise to a 1D free induction decay signal as described in Aja-Fernández et al.
     Parameters
     ----------
@@ -81,11 +81,16 @@ def Add_Noise1D(signal_pure,mean,std_dev):
         http://link.springer.com/10.1007/978-3-319-39934-8.
     """
     size_array=len(signal_pure)
-    noise=np.random.normal(mean,std_dev,size_array)
-    signal_noise=signal_pure+noise
+    if real:
+        noise=np.random.normal(mean,std_dev,size_array)
+        signal_noise=signal_pure+noise
+    else:
+        noise_real = np.random.normal(mean,std_dev,size_array)
+        noise_imag = np.random.normal(mean,std_dev,size_array)
+
+        signal_noise = signal_pure + noise_real +1j*noise_imag
+
     return signal_noise
-
-
 
 def Signal_figure(name,size_array_set,delta_time_set,T2_list,freq_list):
     """Plots a figure designed to show the influences of the signal parameters and creates a .png image of it.

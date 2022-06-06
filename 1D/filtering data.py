@@ -28,7 +28,7 @@ if __name__ == "__main__":
     mean=0
 
 
-    num_iterations = 1
+    num_iterations = 10000
 #DWT input
 
     # num_params=22
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             for i in range(num_iterations):
     
                 signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,real=False)
-                signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,sigma_input)
+                signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,sigma_input, False)
 
                 
                 MSE0=metrics_1D.MSE_Measure(signal_pure, signal_noise)

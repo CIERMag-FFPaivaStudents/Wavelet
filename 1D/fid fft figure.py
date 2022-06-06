@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,real=False)
 
-    signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev)
+    signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,std_dev, False)
     
     # os.chdir('Figures/FID_FFT/Paiva/freq '+freq_title)
     os.chdir('Figures/FID_FFT')
