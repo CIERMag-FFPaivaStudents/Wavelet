@@ -60,22 +60,86 @@ if __name__ == "__main__":
     cd = coefficients[1:] 
 
 
-    l = size_array/2**levels_dwt
-    for i in range(len(cd)):
-        print(len(cd[-i-1]))
+    # l = size_array/2**levels_dwt
+    # for i in range(len(cd)):
+    #     print(len(cd[-i-1]))
         
-    print('size_array\t',size_array)
-    print('wavelet\t',wavelet)
-    print('levels\t',levels_dwt)
-    print('len cd\t',len(cd[-1]))
-    print('len_est\t',l)
+    # print('size_array\t',size_array)
+    # print('wavelet\t',wavelet)
+    # print('levels\t',levels_dwt)
+    # print('len cd\t',len(cd[-1]))
+    # print('len_est\t',l)
     
     
+    
+
+
+    w = pywt.Wavelet(wavelet)
+    
+    # print('filter length\t',w.dec_len)
+    # 
+    max_level = pywt.dwt_max_level(size_array, w.dec_len)
+    # print('max level\t',max_level)
+
+
     
     plt.figure()
     coef_detail=cd[1]
     plt.plot(np.real(coef_detail),'ro-',ms=4)
-    print(len(coef_detail))
-    
+    # print(len(coef_detail))
     plt.show()
+
+
+
+    
+    mother_list = ['db','sym','coif']
+
+#max and min support for each mother wavelet as seen on pywt.wavelist(mother wavelet), the order is the same as in mother_list
+    support_lim = [1,38,2,20,1,17]
+    
+    
+    support_list = []
+    dec_len_list = []
+    max_level_list = []
+    
+    plt.clf()
+    
+    fig=plt.figure(figsize=(22,8))
+    
+    ax1 = fig.add_subplot(1,2,1)
+    ax2 = fig.add_subplot(1,2,2)
+    
+    for m in range(len(mother_list)):
+
+        support_min,support_max = support_lim[2*m:2*(m+1)]
+        support  = np.arange(support_min,support_max+1)
+        support_list.append(support)
+    
+        
+        dec_len = np.zeros(support_max+1-support_min)
+        max_level = np.zeros(support_max+1-support_min)
+        
+        for s in range(support_min,support_max+1):
+            wavelet = mother_list[m]+'%.d'%(s)
+            print(wavelet)
+            wavelet = pywt.Wavelet(wavelet)
+            
+            dec_len[s-support_min] = wavelet.dec_len
+            max_level[s-support_min] = pywt.dwt_max_level(size_array, wavelet.dec_len)
+        
+        dec_len_list.append(dec_len)
+        max_level_list.append(max_level)
+        
+        ax1.plot(support, dec_len,'o',label=mother_list[m])
+        ax1.set_xlabel('Support')
+        ax1.set_ylabel('Filter length')
+        
+        ax2.plot(support, max_level,'o',label=mother_list[m])
+        ax2.set_xlabel('Support')
+        ax2.set_ylabel('Max level of dwt')
+        
+    plt.legend()
+    
+    plt.savefig('exploring wavelets.png')
+        
 
