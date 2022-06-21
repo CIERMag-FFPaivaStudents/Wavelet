@@ -32,7 +32,7 @@ def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
         sigma=sigmas.Sigma2(signal_noise,cut_point)
 
     elif num==5:
-        sigma = sigmas.Sigma5(detail_coef_list)
+        sigma = sigmas.Sigma5(detail_coef_list,fix=True)
     
     # print('sigma',sigma)
     return sigma
@@ -128,13 +128,15 @@ if __name__ == "__main__":
     std_dev=0.1
 
     #DWT parameters
-    mother_wavelet='db'
-    number_wavelet=4
+    mother_wavelet='coif'
+    number_wavelet=17
     wavelet=mother_wavelet+'%d'%number_wavelet
     
     
-    levels_dwt = 4
-   
+    
+    
+    levels_dwt = 5
+
     mode = 'soft'
     alg = 'SURE'
 
@@ -145,6 +147,8 @@ if __name__ == "__main__":
     plt.plot(time, np.real(signal_noise))
     plt.plot(time, np.imag(signal_noise))
     plt.show()
+
+
 
 
     SNR0=metrics_1D.SNR_Measure1D(signal_pure,signal_noise)
@@ -160,8 +164,30 @@ if __name__ == "__main__":
     cd = coefficients[1:] 
 
 
-    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
+    for i in range(len(cd)):
+        print(len(cd[-i-1]))
+        
+    print('size_array\t',size_array)
+    print('wavelet\t',wavelet)
+    print('levels\t',levels_dwt)
+    print('len cd\t',len(cd[-1]))
+
+
+    w = pywt.Wavelet(wavelet)
     
+    print('filter length\t',w.dec_len)
+    
+    max_level = pywt.dwt_max_level(size_array, w.dec_len)
+    print('max level\t',max_level)
+
+
+    
+    sigma_hat = Std_dev_estimator(signal_noise,cd)
+    # print('sigma =',std_dev)
+    # print('sigma_hat=',sigma_hat)
+
+    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
+
     coefficients_smooth  = [ca]+cd_smooth
     signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
 
@@ -179,8 +205,8 @@ if __name__ == "__main__":
     ax1.plot(time,np.real(signal_smooth))
     ax1.set_title('Filtered signal',fontsize=20)
 
-    print('To check if the SNR increased.')
-    print(std_dev,SNR0,SNR1)
+    # print('To check if the SNR increased.')
+    # print(std_dev,SNR0,SNR1)
     
     plt.figure()
     size_array = len(signal_noise)
@@ -202,3 +228,8 @@ if __name__ == "__main__":
     plt.plot(xf, yplot.imag)
     plt.plot(xf, np.abs(yplot))
     plt.show()
+
+
+
+
+

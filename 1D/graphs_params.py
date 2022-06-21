@@ -11,66 +11,66 @@ import os
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    fs=20
-    num_params=12
-    os.chdir('Data/Metrics_filter')
-    data_name = 'Metrics_filter1D {}.txt'.format(num_params)
-    data = np.loadtxt(data_name).T
+    # fs=20
+    # num_params=12
+    # os.chdir('Data/Metrics_filter')
+    # data_name = 'Metrics_filter1D_{}.txt'.format(num_params)
+    # data = np.loadtxt(data_name).T
     
-    metrics_num_list = [2,6,10]
-    metrics_name = ['MSE','SNR','PRD']
+    # metrics_num_list = [2,6,10]
+    # metrics_name = ['MSE','SNR','PRD']
     
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('Graphs/Metrics')
-    sigmas = data[0]
+    # os.chdir('..')
+    # os.chdir('..')
+    # os.chdir('Graphs/Metrics')
+    # sigmas = data[0]
 
 
-    fig = plt.figure(figsize=(12,9))
+    # fig = plt.figure(figsize=(12,9))
     
-    gs = fig.add_gridspec(2,4)
+    # gs = fig.add_gridspec(2,4)
     
-    i=0
-    var = metrics_name[i]
-    k = metrics_num_list[i]
-    ax = fig.add_subplot(gs[0,0:2])
-    ax.plot(sigmas,data[k],'r-',lw=3)
-    ax.plot(sigmas,data[k+2],'g-',lw=3)
-    ax.set_xlabel(r'$\sigma$',fontsize=fs)
-    ax.set_ylabel(var,fontsize=fs)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    # i=0
+    # var = metrics_name[i]
+    # k = metrics_num_list[i]
+    # ax = fig.add_subplot(gs[0,0:2])
+    # ax.plot(sigmas,data[k],'r-',lw=3)
+    # ax.plot(sigmas,data[k+2],'g-',lw=3)
+    # ax.set_xlabel(r'$\sigma$',fontsize=fs)
+    # ax.set_ylabel(var,fontsize=fs)
+    # ax.set_xticks([])
+    # ax.set_yticks([])
 
 
-    i=1
-    var = metrics_name[i]
-    k = metrics_num_list[i]
-    ax = fig.add_subplot(gs[1,1:3])
-    ax.plot(sigmas,data[k],'r-',lw=3)
-    ax.plot(sigmas,data[k+2],'g-',lw=3)
-    ax.set_xlabel(r'$\sigma$',fontsize=fs)
-    ax.set_ylabel(var,fontsize=fs)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    # i=1
+    # var = metrics_name[i]
+    # k = metrics_num_list[i]
+    # ax = fig.add_subplot(gs[1,1:3])
+    # ax.plot(sigmas,data[k],'r-',lw=3)
+    # ax.plot(sigmas,data[k+2],'g-',lw=3)
+    # ax.set_xlabel(r'$\sigma$',fontsize=fs)
+    # ax.set_ylabel(var,fontsize=fs)
+    # ax.set_xticks([])
+    # ax.set_yticks([])
 
-    i=2
-    var = metrics_name[i]
-    k = metrics_num_list[i]
-    ax = fig.add_subplot(gs[0,2:4])
-    ax.plot(sigmas,data[k],'r-',lw=3)
-    ax.plot(sigmas,data[k+2],'g-',lw=3)
-    ax.set_xlabel(r'$\sigma$',fontsize=fs)
-    ax.set_ylabel(var,fontsize=fs)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    # i=2
+    # var = metrics_name[i]
+    # k = metrics_num_list[i]
+    # ax = fig.add_subplot(gs[0,2:4])
+    # ax.plot(sigmas,data[k],'r-',lw=3)
+    # ax.plot(sigmas,data[k+2],'g-',lw=3)
+    # ax.set_xlabel(r'$\sigma$',fontsize=fs)
+    # ax.set_ylabel(var,fontsize=fs)
+    # ax.set_xticks([])
+    # ax.set_yticks([])
 
 
-    plt.savefig(' referencia.png',bbox_inches='tight')
-    plt.close()
+    # plt.savefig(' referencia.png',bbox_inches='tight')
+    # plt.close()
 
     
-    os.chdir('..')
-    os.chdir('..')
+    # os.chdir('..')
+    # os.chdir('..')
     
     
     
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     for num_params in range(1,25):
         print(num_params)
         os.chdir('Data/Metrics_filter')
-        data_name = 'Metrics_filter1D {}.txt'.format(num_params)
+        data_name = 'Metrics_filter1D_{}.txt'.format(num_params)
         data = np.loadtxt(data_name).T
         
         metrics_num_list = [2,6,10]
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             plt.ylabel(var,fontsize=fs)
             plt.xticks(fontsize=fs)
             plt.yticks(fontsize=fs)
-            plt.ylim(metrics_lim[2*i],metrics_lim[2*i+1])
+            # plt.ylim(metrics_lim[2*i],metrics_lim[2*i+1])
             plt.legend(loc='best',fontsize=fs)
             plt.savefig(var+' {}.png'.format(num_params),bbox_inches='tight')
             plt.close()
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
 
 
-    data_name = 'Metrics_filter1D '
+    data_name = 'Metrics_filter1D_'
     bla = [0,4,8]
     
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
             num = 12*t + 1 + n
             print(T[t],N[n], '-' ,num, num+4,num+8)
         
-            data_name = 'Metrics_filter1D '
+            data_name = 'Metrics_filter1D_'
             bla = [0,4,8]
             
         
@@ -217,7 +217,7 @@ if __name__ == "__main__":
             num = 4*f+n+1
             print(F[f],N[n], '-' ,num+12*0, num+12*1)
         
-            data_name = 'Metrics_filter1D '
+            data_name = 'Metrics_filter1D_'
             bla = [0,4,8]
             
         
@@ -259,7 +259,7 @@ if __name__ == "__main__":
             num = 1 + 12*t + 4*f
             print(T[t],F[f], '-' ,num, num+1,num+2, num+3)
         
-            data_name = 'Metrics_filter1D '
+            data_name = 'Metrics_filter1D_'
             bla = [0,4,8]
             
         

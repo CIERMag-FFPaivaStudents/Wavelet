@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pywt
 from scipy import fft
-
+import os
 
 
 
@@ -61,14 +61,13 @@ if __name__ == "__main__":
 
 
     # l = size_array/2**levels_dwt
-    # for i in range(len(cd)):
-    #     print(len(cd[-i-1]))
+    for i in range(len(cd)):
+        print(len(cd[-i-1]))
         
-    # print('size_array\t',size_array)
-    # print('wavelet\t',wavelet)
-    # print('levels\t',levels_dwt)
-    # print('len cd\t',len(cd[-1]))
-    # print('len_est\t',l)
+    print('size_array\t',size_array)
+    print('wavelet\t',wavelet)
+    print('levels\t',levels_dwt)
+    print('len cd\t',len(cd[-1]))
     
     
     
@@ -76,17 +75,17 @@ if __name__ == "__main__":
 
     w = pywt.Wavelet(wavelet)
     
-    # print('filter length\t',w.dec_len)
+    print('filter length\t',w.dec_len)
     # 
     max_level = pywt.dwt_max_level(size_array, w.dec_len)
-    # print('max level\t',max_level)
+    print('max level\t',max_level)
 
 
     
     plt.figure()
     coef_detail=cd[1]
     plt.plot(np.real(coef_detail),'ro-',ms=4)
-    # print(len(coef_detail))
+    print(len(coef_detail))
     plt.show()
 
 
@@ -121,7 +120,7 @@ if __name__ == "__main__":
         
         for s in range(support_min,support_max+1):
             wavelet = mother_list[m]+'%.d'%(s)
-            print(wavelet)
+            # print(wavelet)
             wavelet = pywt.Wavelet(wavelet)
             
             dec_len[s-support_min] = wavelet.dec_len
@@ -131,15 +130,18 @@ if __name__ == "__main__":
         max_level_list.append(max_level)
         
         ax1.plot(support, dec_len,'o',label=mother_list[m])
-        ax1.set_xlabel('Support')
-        ax1.set_ylabel('Filter length')
+        ax1.set_xlabel('Support',fontsize=15)
+        ax1.set_ylabel('Filter length',fontsize=15)
         
+
         ax2.plot(support, max_level,'o',label=mother_list[m])
-        ax2.set_xlabel('Support')
-        ax2.set_ylabel('Max level of dwt')
+        ax2.set_xlabel('Support',fontsize=15)
+        ax2.set_ylabel('Max level of dwt',fontsize=15)
         
-    plt.legend()
+    plt.legend(fontsize=13)
+    plt.tight_layout()
     
-    plt.savefig('exploring wavelets.png')
+    os.chdir('Graphs')
+    plt.savefig('Wavelet_Support.png')
         
 

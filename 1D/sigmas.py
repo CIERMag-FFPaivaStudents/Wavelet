@@ -2,7 +2,7 @@
 #Author: Caio Oliveira
 #Email: caio.dejesusoliveira@usp.br
 """
-This evaluates the best way to estimate the standar deviation of a signal using wavelets
+This evaluates the best way to estimate the standard deviation of a signal using wavelets
 """
 
 import numpy as np
@@ -12,9 +12,7 @@ import metrics_1D
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
-
-
-
+from scipy.optimize import curve_fit
 
 
 def Sigma2(signal_noise,cut_point):
@@ -56,6 +54,8 @@ def Sigma3(detail_coef_list,levels):
     sigma3 /=levels
     return sigma3
 
+
+
 def Sigma4(detail_coef_list):
     """Median of the last detail coeficient level.
     
@@ -74,9 +74,9 @@ def Sigma4(detail_coef_list):
     sigma4/=median_factor
     return sigma4
 
-def Sigma5(detail_coef_list):
+def Sigma5(detail_coef_list,fix=False):
     """Median of the concatenation of the detail coefficients.
-    
+        
     Parameters
     ----------
 
@@ -91,8 +91,18 @@ def Sigma5(detail_coef_list):
     concatenated_detail_coef = np.hstack((detail_coef_list[1:]))
     concatenated_detail_coef = np.abs(concatenated_detail_coef)
     sigma5 = np.median(concatenated_detail_coef)
-    sigma5 /= median_factor
+    
+    if not fix:
+        sigma5 /= median_factor
+        
+
+
     return sigma5
+
+
+
+
+
 
 def Sigma6(detail_coef_list,levels):
     """Median detail coefficient median.
@@ -116,6 +126,8 @@ def Sigma6(detail_coef_list,levels):
 
     return sigma6
 
+
+
 def Sigma7(detail_coef_list,levels):
     """Average detail coefficient median
     
@@ -136,13 +148,13 @@ def Sigma7(detail_coef_list,levels):
         median_list[k] = np.median(np.abs(detail_coef_list[k+1]))
 
     sigma7 = median_list.mean()/median_factor
-    
+
     return sigma7
 
 if __name__ == '__main__':
 
-    num_iterations=1
-
+    num_iterations=10000
+    
     delta_time=0.5
     T2=100
     freq=0.25 
@@ -167,9 +179,9 @@ if __name__ == '__main__':
         sigma_output_matrix=np.zeros((num_iterations,8))
         for i in range(num_iterations):
 
-            signal_pure,time=signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq)
+            signal_pure,time=signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,False)
             
-            signal_noise = signal_1D.Add_Noise1D(signal_pure,mean_set,sigma_input)
+            signal_noise = signal_1D.Add_Noise1D(signal_pure,mean_set,sigma_input,False)
 
 
             approx_coef_list, detail_coef_list = wavelet_1D.DWT_1D(signal_noise,wavelet,levels)
@@ -213,15 +225,16 @@ if __name__ == '__main__':
 
 
     data_name = 'Sigma'
-    parameters = '#Número de Simulações={}, Wavelet Mãe={}, Número de Níveis={},p={},Número de pontos={}'.format(num_iterations,wavelet,levels,cut_point,size_array)
+    parameters = '#Number of simulations={}, Mother Wavelet={}, Number of levels={},cut_point={},Array size={}'.format(num_iterations,wavelet,levels,cut_point,size_array)
     metrics_name_list = ['sigma{}'.format(i+1) for i in range(7)]
 
-    # metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,sigma_output_mean_list,sigma_output_std_dev_list)
+    metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,sigma_output_mean_list,sigma_output_std_dev_list)
 
-
+    os.chdir('1D')
     os.chdir('Data')
-    SIGMA = np.loadtxt('Sigma.txt').T
+    SIGMA = np.loadtxt(data_name+'.txt').T
     os.chdir('..')
+
     
     symbols=['h','*','o','^','s','p','H']
 
@@ -236,32 +249,17 @@ if __name__ == '__main__':
         mi,si = SIGMA[2*(i+1):2*(i+2)]
         plt.errorbar(m0,mi,yerr=si,xerr=None,marker='o',ms=20,label='sigma{}'.format(i+1))
         plt.plot(m0,m0,'k-',zorder=3)
-        plt.xlim(-0.05,0.65)
-        plt.ylim(-0.05,0.7)
+
         plt.xticks(fontsize=40)
         plt.yticks(fontsize=40)
+
     plt.xlabel(r'$\sigma_{input} (a.u.)$',fontsize=40)
     plt.ylabel(r'$\sigma_{output} (a.u.)$',fontsize=40)
     plt.legend(loc='best',fontsize=40)
-    plt.savefig('All together.png')
+    plt.savefig('Every sigma.png')
     os.chdir('..')
 
 
-    os.chdir('Graphs')
-    plt.clf()
-    m0,s0 = SIGMA[0:2]
-    for i in range(7):
-        mi,si = SIGMA[2*(i+1):2*(i+2)]
-        error = np.abs(mi-m0)/m0
-        plt.plot(m0,error,marker='o',ms=20,label='sigma{}'.format(i+1)) 
-        #How do I deal with the error bars? Propagate them?
-        plt.ylim(0,0.1)
-        plt.xticks(fontsize=40)
-        plt.yticks(fontsize=40)
-    plt.xlabel(r'$\sigma_{input}$',fontsize=40)
-    plt.ylabel(r'$\frac{\|\sigma_{output} - \sigma_{input}\| }{\sigma_{input}} $',fontsize=40)
-    plt.legend(loc='best',fontsize=40)
-    plt.savefig('Error.png')
 
 
 
