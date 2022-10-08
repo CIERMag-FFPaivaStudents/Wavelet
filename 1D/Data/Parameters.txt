@@ -23,7 +23,3 @@
 22	5	soft	db8	3
 23	5	soft	db8	4
 24	5	soft	db8	6
-25	5	hard	sym20	5
-26	5	hard	coif17	4
-27	5	soft	sym20	5
-28	5	soft	coif17	4

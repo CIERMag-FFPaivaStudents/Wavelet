@@ -147,14 +147,14 @@ if __name__ == '__main__':
     J=signal_2D.Add_Noise2D(I,20,mask)
     noise=J-I
 
-    levels_dwt = 3
+    levels_dwt = 2
 
     aprox_list,hor_list,vert_list,diag_list=DWT_2D(J,wavelet,levels_dwt)
 
     Multilevel_plot(aprox_list,hor_list,vert_list,diag_list,levels_dwt)
 
     os.chdir('Figures')
-    plt.savefig('Multilevel.png',bbox_inches='tight')
+    plt.savefig('Multilevel_2.png',bbox_inches='tight')
 
 
 

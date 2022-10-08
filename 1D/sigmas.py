@@ -2,7 +2,7 @@
 #Author: Caio Oliveira
 #Email: caio.dejesusoliveira@usp.br
 """
-This evaluates the best way to estimate the standard deviation of a signal using wavelets
+This evaluates the best way to estimate the standard deviation of a signal using the wavelet transform.
 """
 
 import numpy as np

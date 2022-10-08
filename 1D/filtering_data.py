@@ -2,7 +2,7 @@
 #Author: Caio Oliveira
 #Email: caio.dejesusoliveira@usp.br
 """
-This code is plot graphs of filtering.
+This code is plot graphs of filtering performance.
 """
 import signal_1D
 import wavelet_1D
@@ -26,27 +26,18 @@ if __name__ == "__main__":
     freq=0.25
     size_array=2048
     mean=0
+    num_iterations = 1#000
 
 
 
-
-
-    num_iterations = 1#0000
-#DWT input
-
-    # num_params=22
-    # print(os.getcwd())
     for num_params in range(1,25):
         print(num_params)
-        # print(os.getcwd())
         os.chdir('Data')
         params = open('Parameters.txt').readlines()[num_params]
 
         params = params.split('\t')
         noise_estimator, mode, wavelet, levels_dwt = params[1:]
         noise_estimator,levels_dwt = int(noise_estimator),int(levels_dwt)
-        # print(noise_estimator, mode, wavelet, levels_dwt)
-    
 
         num_metrics = 6
         
@@ -65,8 +56,8 @@ if __name__ == "__main__":
             
             for i in range(num_iterations):
     
-                signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,real=False)
-                signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,sigma_input, False)
+                signal_pure,time = signal_1D.Simulate_Signal1D(size_array,delta_time,T2,freq,real=True)
+                signal_noise = signal_1D.Add_Noise1D(signal_pure,mean,sigma_input, True)
 
                 
                 MSE0=metrics_1D.MSE_Measure(signal_pure, signal_noise)
@@ -78,7 +69,7 @@ if __name__ == "__main__":
                 
                 
                 alg = 'SURE'
-                signal_smooth = filter_1D.Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg)
+                signal_smooth = filter_1D.Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg,fix=False)
                 
                 MSE1=metrics_1D.MSE_Measure(signal_pure,signal_smooth)
                 
@@ -117,7 +108,7 @@ if __name__ == "__main__":
         
 
         os.chdir('..')
-        # metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list,folder='/Metrics_filter')
+        metrics_1D.Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list,folder='/Metrics_filter')
 
         os.chdir('..')
 

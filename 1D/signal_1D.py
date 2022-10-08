@@ -224,3 +224,14 @@ if __name__ == '__main__':
     Noise_figure(name_noise,size_array_set,delta_time_set,T2_set,freq_set,mean_list,std_dev_list)
 
 
+    delta_time=0.5
+    T2=100
+    size_array=2048
+    mean=0
+    std_dev=0.1
+
+    freq = 100
+
+    signal_pure,time = Simulate_Signal1D(size_array,delta_time,T2,freq,real=False)
+
+    signal_noise = Add_Noise1D(signal_pure,mean,std_dev,False)

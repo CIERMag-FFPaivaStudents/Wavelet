@@ -1,0 +1,25 @@
+#Number	Frequency(kHz)	Thresholding mode	Wavelet	Number of levels
+25	0	hard	coif5	6
+26	0	hard	coif10	5
+27	0	hard	coif17	4
+28	0	hard	sym8	7
+29	0	hard	sym16	6
+30	0	hard	sym20	5
+31	0.1	hard	coif5	6
+32	0.1	hard	coif10	5
+33	0.1	hard	coif17	4
+34	0.1	hard	sym8	7
+35	0.1	hard	sym16	6
+36	0.1	hard	sym20	5
+37	0.25	hard	coif5	6
+38	0.25	hard	coif10	5
+39	0.25	hard	coif17	4
+40	0.25	hard	sym8	7
+41	0.25	hard	sym16	6
+42	0.25	hard	sym20	5
+43	0.75	hard	coif5	6
+44	0.75	hard	coif10	5
+45	0.75	hard	coif17	4
+46	0.75	hard	sym8	7
+47	0.75	hard	sym16	6
+48	0.75	hard	sym20	5

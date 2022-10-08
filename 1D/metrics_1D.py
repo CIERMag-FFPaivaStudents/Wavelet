@@ -217,7 +217,7 @@ if __name__ == '__main__':
     std_dev=0.01
 
 
-    num_iterations=1
+    num_iterations=2
 
     sigma_input_list=np.arange(0,0.6,0.01)
 
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     metrics_name_list =['MSE','SNR','PRD']
     parameters  = ''
     
-    Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list)
+    # Write_data(data_name,parameters,metrics_name_list,length_input,metrics_mean_list,metrics_std_dev_list)
 
     figsize=(12,9)
-    Show_data(data_name,figsize,metrics_name_list)
+    # Show_data(data_name,figsize,metrics_name_list)

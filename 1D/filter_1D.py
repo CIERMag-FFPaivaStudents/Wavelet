@@ -13,50 +13,30 @@ import matplotlib.pyplot as plt
 import pywt
 from scipy import fft
 
-def Std_dev_estimator(signal_noise,detail_coef_list,num=5):
-    """
+
+
+def Std_dev_estimator(signal_noise,detail_coef_list,fix=True):
+
+    median_factor = 0.675
+    concatenated_detail_coef = np.hstack((detail_coef_list[1:]))
+    concatenated_detail_coef = np.abs(concatenated_detail_coef)
+    sigma = np.median(concatenated_detail_coef)
     
-    Parameters
-    ----------
-
-
-    Return
-    ------
-
-    References
-    ----------
-    """
-
-    if num==2:
-        cut_point = 30
-        sigma=sigmas.Sigma2(signal_noise,cut_point)
-
-    elif num==5:
-        sigma = sigmas.Sigma5(detail_coef_list,fix=True)
+    if not fix:
+        sigma /= median_factor
+    else:
+        a=1.1846438408877022
+        b=0.006499950443242419
+        sigma = (sigma-b)/a
     
-    # print('sigma',sigma)
     return sigma
 
-
-def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg):
-
-    coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
-    ca = coefficients[0]
-    cd = coefficients[1:]
-
-    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
-    
-    coefficients_smooth  = [ca]+cd_smooth
-    signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
-    
-    return signal_smooth
 
 def Thresholding(data,T,mode):
     """
     
     Parameters
     ----------
-
 
     Return
     ------
@@ -79,7 +59,7 @@ def Thresholding(data,T,mode):
         return None
 
 
-def Adaptive_smoothing(signal,detail_coef_list,mode,num=5,alg='SURE'):
+def Adaptive_smoothing(signal,detail_coef_list,mode,fix,alg='SURE',alpha=100):
     """
     
     Parameters
@@ -93,28 +73,38 @@ def Adaptive_smoothing(signal,detail_coef_list,mode,num=5,alg='SURE'):
     ----------
     """
     
-    sigma = Std_dev_estimator(signal,detail_coef_list,num)
+    sigma = Std_dev_estimator(signal,detail_coef_list,fix)
     smooth_detail_coef_list = len(detail_coef_list)*[None]
     for i in range(len(detail_coef_list)):
         size_coef = len(detail_coef_list[i])
 
 
         if alg == 'SURE':
-            T=sigma*np.sqrt(2*np.log(size_coef))
-            # T=sigma*np.sqrt(2*np.log(2048))
-            
-            # print('\tsigma',sigma)
-            # print(T,detail_coef_list[i].min(),detail_coef_list[i].max(),size_coef)
+            T=(alpha/100)*sigma*np.sqrt(2*np.log(size_coef))
+
 
 
         elif alg == 'Bayes':
-            T = sigma**2 / np.std(signal)
-            # print(T,detail_coef_list[i].min(),detail_coef_list[i].max())
-
+            T = (alpha/100)*sigma**2 / np.std(signal)
 
         smooth_detail_coef= Thresholding(detail_coef_list[i],T,mode)
         smooth_detail_coef_list[i] = smooth_detail_coef
     return smooth_detail_coef_list
+
+
+def Wavelet_filter(signal_noise,wavelet,levels_dwt,mode,alg,alpha=100,fix=True):
+
+    coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
+    ca = coefficients[0]
+    cd = coefficients[1:]
+
+    cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,fix,alg=alg,alpha=alpha)
+    
+    coefficients_smooth  = [ca]+cd_smooth
+    signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
+    
+    return signal_smooth
+
 
 
 
@@ -155,13 +145,13 @@ if __name__ == "__main__":
 
 
     coefficients = pywt.wavedec(signal_noise, wavelet, level=levels_dwt)
-
+    ca = coefficients[0]
+    cd = coefficients[1:] 
 
     signal_test = pywt.waverec(coefficients, wavelet)
     SNR_test=metrics_1D.SNR_Measure1D(signal_pure,signal_test)
 
-    ca = coefficients[0]
-    cd = coefficients[1:] 
+
 
 
     for i in range(len(cd)):
@@ -183,15 +173,13 @@ if __name__ == "__main__":
 
     
     sigma_hat = Std_dev_estimator(signal_noise,cd)
-    # print('sigma =',std_dev)
-    # print('sigma_hat=',sigma_hat)
+
 
     cd_smooth = Adaptive_smoothing(signal_noise,cd,mode,alg=alg)
 
     coefficients_smooth  = [ca]+cd_smooth
     signal_smooth = pywt.waverec(coefficients_smooth,wavelet)
 
-    # signal_smooth_func = Wavelet_filter(signal_noise, wavelet, levels_dwt, mode, alg)
 
     SNR1=metrics_1D.SNR_Measure1D(signal_pure,signal_smooth)
 
@@ -205,8 +193,6 @@ if __name__ == "__main__":
     ax1.plot(time,np.real(signal_smooth))
     ax1.set_title('Filtered signal',fontsize=20)
 
-    # print('To check if the SNR increased.')
-    # print(std_dev,SNR0,SNR1)
     
     plt.figure()
     size_array = len(signal_noise)
